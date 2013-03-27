@@ -9,7 +9,7 @@ kc-decrypt() { # Helper function:  decrypt the encrypted passwords file.
 }
 
 pass() { # Grep lines from my encrypted passwords file.
-    if [$! != 0]; then
+    if [[ $! != 0 ]]; then
         echo 'Usage:  pass # It will prompt you for the search string...'
     else
         echo "Please enter the string or regular expression to search for."
@@ -19,7 +19,7 @@ pass() { # Grep lines from my encrypted passwords file.
 }
 
 padd() { # Add a line to my encrypted passwords file.
-    if [ $# != 0 ]; then
+    if [[ $# != 0 ]]; then
         echo 'Usage:  padd # It will prompt you for the line to add...'
     else        
         cp $KC_WALLET $KC_WALLET.bak

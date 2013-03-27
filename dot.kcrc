@@ -1,8 +1,8 @@
 set -a
 
-if [ $KC_TEST ]; then
+if [[ $KC_TEST ]]; then
     KC_DIR=$(basename $0)
-elif [ $KC_REAL ]; then
+elif [[ $KC_REAL ]]; then
     KC_DIR=~
 else
     echo "KC_DIR is not defined.  This is a bug.  Please report it at http://githunnb/....."
