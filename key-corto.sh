@@ -1,33 +1,55 @@
-################################################################################
-# Key Corto:  a tiny utility for storing and retrieving passwords in an
-# encrypted file
-#   by Quinn Weaver
-################################################################################
+export GPGUSER=Nobody
+export GPGOPTS="--batch --quiet --no-tty --armor --user $GPGUSER"
+export WALLET=~/wallet.asc
 
-kc-decrypt() { # Helper function:  decrypt the encrypted passwords file.
-    gpg $KC_GPGOPTS --decrypt $KC_WALLET
+# _dginit() { # Helper function:  create the key and file, iff they don't exist.
+#     if [ ! -e $WALLET ]; then
+#         touch $WALLET
+#     fi
+# 
+#     gpg2 --list-keys Nobody
+#     if [ $? != 0 ]; then
+#         gpg2 --gen-key
+# }
+
+_decryp() { # Helper function:  decrypt the encrypted passwords file.
+    gpg2 $GPGOPTS --decrypt $WALLET
 }
 
 pass() { # Grep lines from my encrypted passwords file.
-    if [[ $! != 0 ]]; then
-        echo 'Usage:  pass # It will prompt you for the search string...'
-    else
-        echo "Please enter the string or regular expression to search for."
-        read REGEX
-        kc-decrypt | grep "$REGEX"
-    fi
+    read -e -p 'Enter a regex to grep for (case-insensitive): ' REGEX
+       # -p 'Text of the prompt> '
+       # -e means use the readline library.
+       # (-s means don't echo what the user types, but that hurts usability).
+       
+    _decryp | grep -i "$REGEX"
 }
 
 padd() { # Add a line to my encrypted passwords file.
-    if [[ $# != 0 ]]; then
-        echo 'Usage:  padd # It will prompt you for the line to add...'
-    else        
-        cp $KC_WALLET $KC_WALLET.bak
+    read -e -p 'Enter a password line to add (freeform, all one line): ' NEW_ENTRY
+       # -p 'Text of the prompt> '
+       # -e means use the readline library.
+       # (-s means don't echo what the user types, but that hurts usability).
 
-        echo "Please enter the line to add."
-        read NEW_LINE
-        TFILE=$KC_WALLET.tmp
-        (kc-decrypt && echo $NEW_LINE) | gpg $KC_GPGOPTS --encrypt > $TFILE \
-            && mv $TFILE $KC_WALLET
+    cp $WALLET $WALLET.bak
+    SWAP_FILE=$WALLET.tmp
+    (_decryp $WALLET && echo $NEW_ENTRY) | gpg2 $GPGOPTS --encrypt > $SWAP_FILE \
+        && mv $SWAP_FILE $WALLET
+}
+
+run_gpg_agent_idempotently() {
+    # This code is from gpg-agent(1) man page:
+    if test -f $HOME/.gpg-agent-info && \
+        kill -0 $(cut -d: -f 2 $HOME/.gpg-agent-info) 2>/dev/null; then
+        GPG_AGENT_INFO=$(cat $HOME/.gpg-agent-info)
+        export GPG_AGENT_INFO
+    else
+        eval $(gpg-agent --daemon)
+        echo $GPG_AGENT_INFO >$HOME/.gpg-agent-info
     fi
 }
+
+# Run gpg_agent in the background, so that the user has to supply credentials
+# only once in a while, not each time she runs pass or padd. If you dislike
+# this feature for security reasons, comment out the following line:
+run_gpg_agent_idempotently
