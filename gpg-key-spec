@@ -1,0 +1,7 @@
+%dry-run
+%ask-passphrase
+Key-Type:      1
+Key-Length:    4096
+Name-Real:     Key Corto
+Name-Comment:  http://github.com/.......
+Name-Email:    key-corto@example.com

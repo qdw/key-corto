@@ -1,0 +1,7 @@
+Add a util to auto-generate the password, padd it, and echo it back to you
+
+Use encrypted memory?  How?
+
+Also be concerned about file permissions
+
+Refuse duplicate entries?
